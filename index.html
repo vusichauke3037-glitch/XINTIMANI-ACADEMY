@@ -23,12 +23,16 @@ td,th{border:1px solid #eee;padding:8px;text-align:left}
 label{font-size:13px;font-weight:700}
 .flex{display:flex;gap:8px;flex-wrap:wrap}
 .flex>*{flex:1;min-width:140px}
+.chip-box{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}
+.chip-box label{background:#F8F6EF;border:2px solid #E8E0C5;border-radius:20px;padding:7px 11px;font-size:13px;cursor:pointer;display:flex;gap:5px;align-items:center}
+.chip-box label:has(input:checked){background:#0A1A3A;color:#fff;border-color:#0A1A3A}
+.chip-box input{width:auto;margin:0}
+.counter{font-size:12px;font-weight:800;color:#0A1A3A;background:#FFF2B0;padding:3px 10px;border-radius:20px;display:inline-block}
 </style></head>
 <body>
 
-<div class="top"><h2>🎓 XINTIMANI ACADEMY</h2><p>Educator Absence • Smart Substitute Matching • <b>Privacy First</b></p><p class="small" style="color:#fff;opacity:.8">Principal / Admin: Add Educators + Upload Timetable</p></div>
+<div class="top"><h2>🎓 XINTIMANI ACADEMY</h2><p>Educator Absence • Smart Substitute Matching • <b>Privacy First</b></p><p class="small" style="color:#fff;opacity:.8">Educators: Up to 5 Grades + Up to 5 Classes Each</p></div>
 
-<!-- LOGIN -->
 <div class="card" id="loginCard">
 <h3>🔐 Login — Xintimani Academy</h3>
 <p>Educators report <b>YOUR</b> absence. Admin manages educators + timetable.</p>
@@ -38,17 +42,15 @@ label{font-size:13px;font-weight:700}
 <p class="small">Demo: Principal PIN 1234 • Educators PIN 1234 unless Admin changes it.<br>Privacy: Other educators see WHO is absent, NOT why. Only Admin sees reason.</p>
 </div>
 
-<!-- APP -->
 <div id="app" class="hidden">
 <div class="card">
 <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
-<div><b id="welcome">Welcome</b><br><span class="small" id="myInfo"></span></div>
+<div><b id="welcome">Welcome</b><br><span class="small" id="myInfo"></span><br><span class="small" id="myGrades"></span></div>
 <button class="btn-navy" onclick="logout()">Logout</button>
 </div>
 <div id="myNotifs"></div>
 </div>
 
-<!-- REPORT -->
 <div class="card" id="reportCard">
 <h3>📝 Report MY Absence</h3>
 <p>Only for yourself.</p>
@@ -58,35 +60,58 @@ label{font-size:13px;font-weight:700}
 <select id="absSubject"></select>
 <textarea id="absReason" rows="2" placeholder="Reason (PRIVATE — Only Admin sees this. e.g. Sick / Family emergency) *"></textarea>
 <button class="btn" onclick="reportAbsence()">Submit Absence + Auto-Find Substitute →</button>
-<p class="small">Matching: 1) Free on TIMETABLE + Same Class → 2) Free + Same Subject → 3) Free + Any Educator</p>
+<p class="small">Matching: 1) Free on TIMETABLE + Teaches ANY of your 5 Classes → 2) Free + Same Subject / Grade → 3) Free + Any Educator</p>
 </div>
 
-<!-- TODAY BOARD -->
 <div class="card">
 <h3>📋 Today’s Cover Board <span class="small">(What ALL educators see)</span></h3>
 <p class="small">Shows WHO is absent + WHO is covering. NO reasons shown.</p>
 <div id="board"></div>
 </div>
 
-<!-- ADMIN ONLY -->
 <div class="card hidden" id="adminCard">
 <h3>🔒 Principal / Admin Only</h3>
 
-<h3 style="margin-top:14px">👩‍🏫 1. Add Educator</h3>
-<p class="small">New educator appears in Login list immediately.</p>
+<h3 style="margin-top:14px">👩‍🏫 1. Add Educator — Up to 5 Grades + 5 Classes</h3>
+<p class="small">Tick up to 5 Grades AND up to 5 Classes. System stops you at 5.</p>
 <input id="newName" placeholder="Full Name — e.g. Mrs Khumalo">
 <input id="newEmail" placeholder="Email / Login — e.g. khumalo@school.co.za">
-<div class="flex"><input id="newClass" placeholder="Class — e.g. Grade 10A"><input id="newSubject" placeholder="Subject — e.g. Maths"></div>
+<label>🎓 Grades — Pick up to 5 <span class="counter" id="gradeCount">0 / 5 Grades</span></label>
+<div class="chip-box" id="gradeBox">
+<label><input type="checkbox" value="Grade 8" onchange="limitCheck('gradeBox','gradeCount','Grades')"> Grade 8</label>
+<label><input type="checkbox" value="Grade 9" onchange="limitCheck('gradeBox','gradeCount','Grades')"> Grade 9</label>
+<label><input type="checkbox" value="Grade 10" onchange="limitCheck('gradeBox','gradeCount','Grades')"> Grade 10</label>
+<label><input type="checkbox" value="Grade 11" onchange="limitCheck('gradeBox','gradeCount','Grades')"> Grade 11</label>
+<label><input type="checkbox" value="Grade 12" onchange="limitCheck('gradeBox','gradeCount','Grades')"> Grade 12</label>
+<label><input type="checkbox" value="Grade R" onchange="limitCheck('gradeBox','gradeCount','Grades')"> Grade R</label>
+</div>
+<label>🏫 Classes — Pick up to 5 <span class="counter" id="classCount">0 / 5 Classes</span></label>
+<div class="chip-box" id="classBox">
+<label><input type="checkbox" value="Grade 8A" onchange="limitCheck('classBox','classCount','Classes')"> 8A</label>
+<label><input type="checkbox" value="Grade 8B" onchange="limitCheck('classBox','classCount','Classes')"> 8B</label>
+<label><input type="checkbox" value="Grade 9A" onchange="limitCheck('classBox','classCount','Classes')"> 9A</label>
+<label><input type="checkbox" value="Grade 9B" onchange="limitCheck('classBox','classCount','Classes')"> 9B</label>
+<label><input type="checkbox" value="Grade 10A" onchange="limitCheck('classBox','classCount','Classes')"> 10A</label>
+<label><input type="checkbox" value="Grade 10B" onchange="limitCheck('classBox','classCount','Classes')"> 10B</label>
+<label><input type="checkbox" value="Grade 10C" onchange="limitCheck('classBox','classCount','Classes')"> 10C</label>
+<label><input type="checkbox" value="Grade 11A" onchange="limitCheck('classBox','classCount','Classes')"> 11A</label>
+<label><input type="checkbox" value="Grade 11B" onchange="limitCheck('classBox','classCount','Classes')"> 11B</label>
+<label><input type="checkbox" value="Grade 11C" onchange="limitCheck('classBox','classCount','Classes')"> 11C</label>
+<label><input type="checkbox" value="Grade 12A" onchange="limitCheck('classBox','classCount','Classes')"> 12A</label>
+<label><input type="checkbox" value="Grade 12B" onchange="limitCheck('classBox','classCount','Classes')"> 12B</label>
+</div>
+<label>📚 Subjects (comma separated — e.g. Maths, Physics)</label>
+<input id="newSubject" placeholder="Subject — e.g. Maths, Physics">
 <div class="flex"><input id="newPin" placeholder="PIN — e.g. 1234" value="1234"><select id="newFree"><option value="true">✅ Free Periods Available</option><option value="false">🔴 Mostly Busy</option></select></div>
 <button class="btn" onclick="addEducator()">+ Add Educator →</button>
 <div id="educatorList"></div>
 
 <h3 style="margin-top:20px">🗓️ 2. Upload School Timetable</h3>
-<p class="small">System uses this to know who is REALLY free that Period. If educator is teaching that Period, they will NOT be picked as substitute.</p>
+<p class="small">System uses this to know who is REALLY free that Period.</p>
 <label>Option A — Upload CSV File (Excel → Save As CSV)</label>
 <input type="file" id="csvFile" accept=".csv,.txt" onchange="uploadCSV(event)">
-<p class="small">CSV format: <b>Day,Period,Class,Subject,EducatorEmail</b><br>Example: <b>Monday,Period 2,Grade 10A,Maths,nkosi@school.co.za</b></p>
-<label>Option B — Paste Timetable (One per line)</label>
+<p class="small">CSV: <b>Day,Period,Class,Subject,EducatorEmail</b><br>Example: <b>Monday,Period 2,Grade 10A,Maths,nkosi@school.co.za</b></p>
+<label>Option B — Paste Timetable</label>
 <textarea id="csvPaste" rows="3" placeholder="Monday,Period 2,Grade 10A,Maths,nkosi@school.co.za&#10;Monday,Period 2,Grade 11B,English,mokoena@school.co.za"></textarea>
 <button class="btn-navy" style="width:100%" onclick="pasteTimetable()">Save Pasted Timetable →</button>
 <label style="display:block;margin-top:12px">Option C — Add One Lesson Manually</label>
@@ -103,7 +128,6 @@ label{font-size:13px;font-weight:700}
 <div id="availBoard"></div>
 </div>
 
-<!-- MY COVERS -->
 <div class="card">
 <h3>🔔 My Cover Duties / Notifications</h3>
 <div id="myCovers"></div>
@@ -113,36 +137,42 @@ label{font-size:13px;font-weight:700}
 <p style="text-align:center;margin-top:16px;font-size:12px;color:#888">© 2026 XINTIMANI ACADEMY • Building Solutions. Empowering Communities. • Xintimani Group</p>
 
 <script>
-// --- DATA ---
 let educators=JSON.parse(localStorage.getItem("xa_educators")||"null")||[
-{id:"dube@school.co.za",name:"Mrs Dube",classes:["Grade 10A"],subjects:["Maths"],free:true,pin:"1234",role:"educator"},
-{id:"nkosi@school.co.za",name:"Mr Nkosi",classes:["Grade 10A"],subjects:["English"],free:true,pin:"1234",role:"educator"},
-{id:"mokoena@school.co.za",name:"Mrs Mokoena",classes:["Grade 11B"],subjects:["Maths"],free:true,pin:"1234",role:"educator"},
-{id:"chauke@school.co.za",name:"Mr Chauke",classes:["Grade 10B"],subjects:["Science"],free:false,pin:"1234",role:"educator"},
-{id:"admin@school.co.za",name:"Principal",classes:[],subjects:[],free:true,pin:"1234",role:"admin"},
+{id:"dube@school.co.za",name:"Mrs Dube",grades:["Grade 10","Grade 11"],classes:["Grade 10A","Grade 10B","Grade 11A"],subjects:["Maths"],free:true,pin:"1234",role:"educator"},
+{id:"nkosi@school.co.za",name:"Mr Nkosi",grades:["Grade 10"],classes:["Grade 10A","Grade 10B"],subjects:["English"],free:true,pin:"1234",role:"educator"},
+{id:"mokoena@school.co.za",name:"Mrs Mokoena",grades:["Grade 11","Grade 12"],classes:["Grade 11B","Grade 12A"],subjects:["Maths"],free:true,pin:"1234",role:"educator"},
+{id:"chauke@school.co.za",name:"Mr Chauke",grades:["Grade 10"],classes:["Grade 10B"],subjects:["Science"],free:false,pin:"1234",role:"educator"},
+{id:"admin@school.co.za",name:"Principal",grades:[],classes:[],subjects:[],free:true,pin:"1234",role:"admin"},
 ];
+// Fix old data that had single class string
+educators=educators.map(e=>{if(typeof e.classes==="string")e.classes=[e.classes];if(!e.grades)e.grades=e.classes.map(c=>c.replace(/[ABC]$/,"").trim());if(typeof e.subjects==="string")e.subjects=[e.subjects];return e;});
 let timetable=JSON.parse(localStorage.getItem("xa_timetable")||"[]");
 let absences=JSON.parse(localStorage.getItem("xintimani_absences")||"[]");
 let notifs=JSON.parse(localStorage.getItem("xintimani_notifs")||"[]");
 let current=null;
 document.getElementById("absDate").valueAsDate=new Date();
 function save(){localStorage.setItem("xa_educators",JSON.stringify(educators));localStorage.setItem("xa_timetable",JSON.stringify(timetable));localStorage.setItem("xintimani_absences",JSON.stringify(absences));localStorage.setItem("xintimani_notifs",JSON.stringify(notifs));}
+function getChecked(boxId){return [...document.querySelectorAll("#"+boxId+" input:checked")].map(i=>i.value);}
+function limitCheck(boxId,countId,label){
+ let checked=getChecked(boxId);
+ if(checked.length>5){alert("⚠️ Max 5 "+label+" per educator. Untick one first."); event.target.checked=false; checked=getChecked(boxId);}
+ document.getElementById(countId).innerText=checked.length+" / 5 "+label;
+}
 function dayName(dateStr){try{return ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][new Date(dateStr+"T00:00:00").getDay()]}catch(e){return ""}}
 function isBusyOnTimetable(educatorId,dateStr,period){
-  if(period==="Full Day") return false;
-  let day=dayName(dateStr);
-  return timetable.some(t=>t.educator===educatorId && t.day===day && t.period===period);
+ if(period==="Full Day") return false;
+ let day=dayName(dateStr);
+ return timetable.some(t=>t.educator===educatorId && t.day===day && t.period===period);
 }
 function refreshLogin(){
-  let sel=document.getElementById("loginUser");
-  sel.innerHTML=educators.map(e=>`<option value="${e.id}">${e.name} — ${e.classes.join(", ")} • ${e.subjects.join(", ")} ${e.role==="admin"?"— Principal / Admin":""}</option>`).join("");
-  let tt=document.getElementById("ttEducator");
-  if(tt) tt.innerHTML=educators.filter(e=>e.role!=="admin").map(e=>`<option value="${e.id}">${e.name} — ${e.classes.join(",")}</option>`).join("");
-  // class/subject dropdowns for report
-  let classes=[...new Set(educators.flatMap(e=>e.classes))];
-  let subjects=[...new Set(educators.flatMap(e=>e.subjects))];
-  document.getElementById("absClass").innerHTML=classes.map(c=>`<option>${c}</option>`).join("")||"<option>Grade 10A</option>";
-  document.getElementById("absSubject").innerHTML=subjects.map(s=>`<option>${s}</option>`).join("")||"<option>Maths</option>";
+ let sel=document.getElementById("loginUser");
+ sel.innerHTML=educators.map(e=>`<option value="${e.id}">${e.name} — ${(e.classes||[]).join(", ")} • ${(e.subjects||[]).join(", ")} ${e.role==="admin"?"— Principal / Admin":""}</option>`).join("");
+ let tt=document.getElementById("ttEducator");
+ if(tt) tt.innerHTML=educators.filter(e=>e.role!=="admin").map(e=>`<option value="${e.id}">${e.name} — ${(e.classes||[]).join(", ")}</option>`).join("");
+ let classes=[...new Set(educators.flatMap(e=>e.classes||[]))];
+ let subjects=[...new Set(educators.flatMap(e=>e.subjects||[]))];
+ document.getElementById("absClass").innerHTML=classes.map(c=>`<option>${c}</option>`).join("")||"<option>Grade 10A</option>";
+ document.getElementById("absSubject").innerHTML=subjects.map(s=>`<option>${s}</option>`).join("")||"<option>Maths</option>";
 }
 function login(){
  let email=document.getElementById("loginUser").value;
@@ -153,84 +183,63 @@ function login(){
  document.getElementById("loginCard").classList.add("hidden");
  document.getElementById("app").classList.remove("hidden");
  document.getElementById("welcome").innerText="Welcome, "+current.name+" — Xintimani Academy";
- document.getElementById("myInfo").innerText=current.role==="admin"?"Principal / Admin — Full Access":current.classes.join(", ")+" • "+current.subjects.join(", ");
+ document.getElementById("myInfo").innerText=current.role==="admin"?"Principal / Admin — Full Access":(current.classes||[]).join(", ")+" • "+(current.subjects||[]).join(", ");
+ document.getElementById("myGrades").innerText=current.role==="admin"?"":"🎓 Grades: "+(current.grades||[]).join(", ")+"  ("+(current.grades||[]).length+"/5)  •  🏫 Classes: "+(current.classes||[]).length+"/5";
  if(current.role==="admin") document.getElementById("adminCard").classList.remove("hidden"); else document.getElementById("adminCard").classList.add("hidden");
- if(current.role!=="admin") document.getElementById("reportCard").classList.remove("hidden"); else document.getElementById("reportCard").classList.remove("hidden");
  render();
 }
 function logout(){current=null;document.getElementById("app").classList.add("hidden");document.getElementById("loginCard").classList.remove("hidden");}
-
-// --- ADD EDUCATOR (ADMIN ONLY) ---
 function addEducator(){
  if(!current||current.role!=="admin"){alert("Only Principal / Admin can add educators.");return;}
  let name=document.getElementById("newName").value.trim();
  let email=document.getElementById("newEmail").value.trim().toLowerCase();
- let cls=document.getElementById("newClass").value.trim();
- let subj=document.getElementById("newSubject").value.trim();
+ let grades=getChecked("gradeBox");
+ let classes=getChecked("classBox");
+ let subjRaw=document.getElementById("newSubject").value.trim();
+ let subjects=subjRaw?subjRaw.split(",").map(s=>s.trim()).filter(Boolean):[];
  let pin=document.getElementById("newPin").value.trim()||"1234";
  let free=document.getElementById("newFree").value==="true";
  if(!name||!email){alert("Enter Name + Email");return;}
+ if(grades.length===0){alert("Tick at least 1 Grade (up to 5)");return;}
+ if(classes.length===0){alert("Tick at least 1 Class (up to 5)");return;}
+ if(grades.length>5||classes.length>5){alert("Max 5 Grades + 5 Classes");return;}
  if(educators.find(e=>e.id===email)){alert("Educator already exists with that email.");return;}
- educators.push({id:email,name,classes:cls?[cls]:[],subjects:subj?[subj]:[],free,pin,role:"educator"});
+ educators.push({id:email,name,grades,classes,subjects,free,pin,role:"educator"});
  save(); refreshLogin(); render();
- ["newName","newEmail","newClass","newSubject"].forEach(id=>document.getElementById(id).value="");
- alert("✅ "+name+" added! Login: "+email+" / PIN: "+pin);
+ document.getElementById("newName").value="";document.getElementById("newEmail").value="";document.getElementById("newSubject").value="";
+ document.querySelectorAll("#gradeBox input:checked, #classBox input:checked").forEach(i=>i.checked=false);
+ document.getElementById("gradeCount").innerText="0 / 5 Grades";document.getElementById("classCount").innerText="0 / 5 Classes";
+ alert("✅ "+name+" added!\nGrades ("+grades.length+"/5): "+grades.join(", ")+"\nClasses ("+classes.length+"/5): "+classes.join(", ")+"\nLogin: "+email+" / PIN: "+pin);
 }
-function deleteEducator(email){
- if(!confirm("Delete this educator?")) return;
- educators=educators.filter(e=>e.id!==email);
- save(); refreshLogin(); render();
-}
-
-// --- TIMETABLE ---
+function deleteEducator(email){if(!confirm("Delete this educator?"))return; educators=educators.filter(e=>e.id!==email); save(); refreshLogin(); render();}
 function parseCSV(text){
- let lines=text.split(/\r?\n/).filter(l=>l.trim());
- let count=0;
- lines.forEach(line=>{
-   if(line.toLowerCase().includes("day,period")) return; // skip header
-   let parts=line.split(",").map(s=>s.trim());
-   if(parts.length>=5){
-     timetable.push({day:parts[0],period:parts[1],class:parts[2],subject:parts[3],educator:parts[4].toLowerCase()});
-     count++;
-   }
- });
+ let lines=text.split(/\r?\n/).filter(l=>l.trim()); let count=0;
+ lines.forEach(line=>{if(line.toLowerCase().includes("day,period"))return; let parts=line.split(",").map(s=>s.trim()); if(parts.length>=5){timetable.push({day:parts[0],period:parts[1],class:parts[2],subject:parts[3],educator:parts[4].toLowerCase()});count++;}});
  return count;
 }
-function uploadCSV(e){
- let f=e.target.files[0]; if(!f) return;
- let r=new FileReader(); r.onload=()=>{let c=parseCSV(r.result); save(); render(); alert("✅ Timetable uploaded: "+c+" lessons added.");}; r.readAsText(f);
-}
-function pasteTimetable(){
- let t=document.getElementById("csvPaste").value;
- if(!t.trim()){alert("Paste timetable first");return;}
- let c=parseCSV(t); save(); render(); document.getElementById("csvPaste").value=""; alert("✅ "+c+" lessons saved.");
-}
-function addTimetableRow(){
- let day=document.getElementById("ttDay").value;
- let period=document.getElementById("ttPeriod").value;
- let cls=document.getElementById("ttClass").value.trim();
- let subj=document.getElementById("ttSubject").value.trim();
- let edu=document.getElementById("ttEducator").value;
- if(!cls||!subj){alert("Enter Class + Subject");return;}
- timetable.push({day,period,class:cls,subject:subj,educator:edu});
- save(); render(); alert("✅ Lesson added: "+day+" "+period+" "+cls);
-}
+function uploadCSV(e){let f=e.target.files[0]; if(!f)return; let r=new FileReader(); r.onload=()=>{let c=parseCSV(r.result); save(); render(); alert("✅ Timetable uploaded: "+c+" lessons added.");}; r.readAsText(f);}
+function pasteTimetable(){let t=document.getElementById("csvPaste").value; if(!t.trim()){alert("Paste timetable first");return;} let c=parseCSV(t); save(); render(); document.getElementById("csvPaste").value=""; alert("✅ "+c+" lessons saved.");}
+function addTimetableRow(){let day=document.getElementById("ttDay").value;let period=document.getElementById("ttPeriod").value;let cls=document.getElementById("ttClass").value.trim();let subj=document.getElementById("ttSubject").value.trim();let edu=document.getElementById("ttEducator").value; if(!cls||!subj){alert("Enter Class + Subject");return;} timetable.push({day,period,class:cls,subject:subj,educator:edu}); save(); render(); alert("✅ Lesson added: "+day+" "+period+" "+cls);}
 function clearTimetable(){if(!confirm("Clear ALL timetable?"))return; timetable=[]; save(); render();}
 function deleteTimetable(i){timetable.splice(i,1); save(); render();}
-
-// --- MATCHING WITH TIMETABLE ---
+function gradeFromClass(cls){return cls.replace(/Grade\s(\d+).*/,"Grade $1");}
 function findSubstitute(absentEducator, cls, subj, dateStr, period){
  let absentIds=absences.map(a=>a.educatorId);
  let coveringIds=absences.map(a=>a.substituteId);
- // FREE = not absent, not covering, not busy on timetable that period, and marked free
  let candidates=educators.filter(e=>e.role!=="admin" && e.id!==absentEducator.id && !absentIds.includes(e.id) && !coveringIds.includes(e.id) && e.free && !isBusyOnTimetable(e.id,dateStr,period));
- let p1=candidates.find(e=>e.classes.includes(cls));
- if(p1) return {sub:p1,priority:"PRIORITY 1 — Free on Timetable + Same Class (Best Match)"};
- let p2=candidates.find(e=>e.subjects.includes(subj));
- if(p2) return {sub:p2,priority:"PRIORITY 2 — Free on Timetable + Same Subject"};
+ // P1: Teaches SAME CLASS (any of their 5 classes)
+ let p1=candidates.find(e=>(e.classes||[]).includes(cls));
+ if(p1) return {sub:p1,priority:"PRIORITY 1 — Free + Same Class ("+cls+") — Teaches "+p1.classes.join(", ")};
+ // P1b: Teaches SAME GRADE (any of their 5 grades)
+ let g=gradeFromClass(cls);
+ let p1b=candidates.find(e=>(e.grades||[]).includes(g));
+ if(p1b) return {sub:p1b,priority:"PRIORITY 1B — Free + Same Grade ("+g+") — Knows the grade"};
+ // P2: Same Subject
+ let p2=candidates.find(e=>(e.subjects||[]).includes(subj));
+ if(p2) return {sub:p2,priority:"PRIORITY 2 — Free + Same Subject ("+subj+")"};
  let p3=candidates[0];
- if(p3) return {sub:p3,priority:"PRIORITY 3 — Free on Timetable (Non-Class) — Last Resort"};
- return {sub:null,priority:"NO SUBSTITUTE FOUND — All free educators busy / absent (Check Timetable)"};
+ if(p3) return {sub:p3,priority:"PRIORITY 3 — Free Educator (Non-Class) — Last Resort"};
+ return {sub:null,priority:"NO SUBSTITUTE FOUND — All free educators busy / absent"};
 }
 function reportAbsence(){
  if(!current || current.role==="admin"){alert("Admin cannot report absence. Login as an educator.");return;}
@@ -249,22 +258,21 @@ function reportAbsence(){
    notifs.push({id:Date.now()+1,to:"admin@school.co.za",from:"System",msg:`✅ ${current.name} absent (${cls} ${subj} ${period}). Auto-matched: ${match.sub.name} — ${match.priority}`,date:Date.now(),read:false});
  }
  save(); render();
- alert(match.sub?`✅ Substitute Found!\n\n${match.sub.name}\n${match.priority}\n\nNotification sent to ${match.sub.name}`:`⚠️ No substitute available. Admin notified. Check Timetable — everyone may be teaching that Period.`);
+ alert(match.sub?`✅ Substitute Found!\n\n${match.sub.name}\n${match.priority}\n\nNotification sent to ${match.sub.name}`:`⚠️ No substitute available. Admin notified.`);
 }
 function render(){
  let b=document.getElementById("board");
  if(absences.length===0) b.innerHTML="<p>No absences reported. All educators present ✅</p>";
  else b.innerHTML=absences.map(a=>`<div style="border:1px solid #eee;border-radius:12px;padding:10px;margin-top:8px"><b>❌ ${a.educatorName} — ABSENT</b> <span class="badge red">Absent</span><br><span class="small">${a.date} • ${a.period} • ${a.class} • ${a.subject}</span><br>👉 <b>Cover:</b> ${a.substituteName} <span class="badge green">${a.status}</span><br><span class="small">${a.priority}</span></div>`).join("");
  if(current && current.role==="admin"){
-   document.getElementById("educatorList").innerHTML=`<table><tr><th>Educator</th><th>Class / Subject</th><th>PIN</th><th></th></tr>${educators.map(e=>`<tr><td>${e.name}<br><span class="small">${e.id}</span></td><td>${e.classes.join(", ")} / ${e.subjects.join(", ")}<br>${e.role==="admin"?"🔒 Admin":e.free?"✅ Free":"🔴 Busy"}</td><td>${e.pin}</td><td>${e.role!=="admin"?`<button class="btn-red" onclick="deleteEducator('${e.id}')">Delete</button>`:""}</td></tr>`).join("")}</table>`;
-   document.getElementById("timetableView").innerHTML=timetable.length?`<table><tr><th>Day</th><th>Period</th><th>Class</th><th>Subject</th><th>Educator</th><th></th></tr>${timetable.map((t,i)=>{let edu=educators.find(e=>e.id===t.educator);return `<tr><td>${t.day}</td><td>${t.period}</td><td>${t.class}</td><td>${t.subject}</td><td>${edu?edu.name:t.educator}</td><td><button class="btn-red" onclick="deleteTimetable(${i})">X</button></td></tr>`}).join("")}</table>`:"<p class='small'>No timetable uploaded yet. Upload CSV or add lessons manually above.</p>";
+   document.getElementById("educatorList").innerHTML=`<table><tr><th>Educator</th><th>Grades (max 5)</th><th>Classes (max 5)</th><th>Subjects</th><th>PIN</th><th></th></tr>${educators.map(e=>`<tr><td>${e.name}<br><span class="small">${e.id}</span></td><td>${(e.grades||[]).join(", ")}<br><span class="badge gold">${(e.grades||[]).length}/5</span></td><td>${(e.classes||[]).join(", ")}<br><span class="badge gold">${(e.classes||[]).length}/5</span></td><td>${(e.subjects||[]).join(", ")}<br>${e.role==="admin"?"🔒 Admin":e.free?"✅ Free":"🔴 Busy"}</td><td>${e.pin}</td><td>${e.role!=="admin"?`<button class="btn-red" onclick="deleteEducator('${e.id}')">Delete</button>`:""}</td></tr>`).join("")}</table>`;
+   document.getElementById("timetableView").innerHTML=timetable.length?`<table><tr><th>Day</th><th>Period</th><th>Class</th><th>Subject</th><th>Educator</th><th></th></tr>${timetable.map((t,i)=>{let edu=educators.find(e=>e.id===t.educator);return `<tr><td>${t.day}</td><td>${t.period}</td><td>${t.class}</td><td>${t.subject}</td><td>${edu?edu.name:t.educator}</td><td><button class="btn-red" onclick="deleteTimetable(${i})">X</button></td></tr>`}).join("")}</table>`:"<p class='small'>No timetable uploaded yet.</p>";
    document.getElementById("adminBoard").innerHTML=absences.length?absences.map(a=>`<div style="border:1px solid #eee;padding:10px;border-radius:10px;margin-top:8px"><b>${a.educatorName}</b> — ${a.class} ${a.subject} ${a.period}<br><b style="color:#B00">Private Reason:</b> ${a.reason}<br><b>Substitute:</b> ${a.substituteName} — ${a.priority} <button class="btn-navy" style="padding:4px 10px;font-size:12px" onclick="reassign(${a.id})">Reassign</button></div>`).join(""):"<p>No absences.</p>";
-   document.getElementById("availBoard").innerHTML=`<table><tr><th>Educator</th><th>Class</th><th>Subject</th><th>Timetable Today</th><th>Status</th></tr>${educators.filter(e=>e.role!=="admin").map(e=>{
+   document.getElementById("availBoard").innerHTML=`<table><tr><th>Educator</th><th>Grades / Classes</th><th>Subject</th><th>Status</th></tr>${educators.filter(e=>e.role!=="admin").map(e=>{
      let isAbsent=absences.find(a=>a.educatorId===e.id);
      let isCovering=absences.find(a=>a.substituteId===e.id);
-     let todayTT=timetable.filter(t=>t.educator===e.id).slice(0,3).map(t=>t.day+" "+t.period).join(", ")||"No timetable";
      let status=isAbsent?"❌ Absent":isCovering?`🔔 Covering for ${isCovering.educatorName}`:e.free?"✅ Free":"🔴 Busy";
-     return `<tr><td>${e.name}</td><td>${e.classes.join(", ")}</td><td>${e.subjects.join(", ")}</td><td><span class="small">${todayTT}</span></td><td>${status}</td></tr>`}).join("")}</table>`;
+     return `<tr><td>${e.name}</td><td><span class="small">${(e.grades||[]).join(", ")}<br>${(e.classes||[]).join(", ")}</span></td><td>${(e.subjects||[]).join(", ")}</td><td>${status}</td></tr>`}).join("")}</table>`;
  }
  if(!current) return;
  let myN=notifs.filter(n=>n.to===current.id);
@@ -277,7 +285,7 @@ function reassign(id){
  let rec=absences.find(a=>a.id===id);
  let avail=educators.filter(e=>e.role!=="admin" && e.id!==rec.educatorId && !absences.map(x=>x.substituteId).includes(e.id));
  if(!avail.length){alert("No educator free to reassign.");return;}
- let choice=prompt("Reassign to:\n"+avail.map((e,i)=>`${i}: ${e.name} — ${e.classes.join(",")} ${e.subjects.join(",")}`).join("\n"));
+ let choice=prompt("Reassign to:\n"+avail.map((e,i)=>`${i}: ${e.name} — ${(e.classes||[]).join(", ")} ${(e.subjects||[]).join(", ")}`).join("\n"));
  if(choice===null) return;
  let sel=avail[parseInt(choice)]; if(!sel) return;
  rec.substituteId=sel.id; rec.substituteName=sel.name; rec.priority="MANUALLY REASSIGNED BY ADMIN";
