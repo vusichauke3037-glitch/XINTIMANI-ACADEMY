@@ -13,6 +13,8 @@ input,select,textarea{width:100%;padding:12px;border:1px solid #ccc;border-radiu
 .btn-navy{background:#0A1A3A;color:#fff;border:0;padding:10px 14px;border-radius:30px;font-weight:800;cursor:pointer}
 .btn-green{background:#25D366;color:#fff;border:0;padding:10px 14px;border-radius:30px;font-weight:800;cursor:pointer}
 .btn-red{background:#D33;color:#fff;border:0;padding:6px 12px;border-radius:20px;font-weight:800;cursor:pointer;font-size:12px}
+.btn-edit{background:#0A1A3A;color:#fff;border:0;padding:6px 12px;border-radius:20px;font-weight:800;cursor:pointer;font-size:12px}
+.btn-wa{background:#25D366;color:#fff;border:0;padding:10px 14px;border-radius:30px;font-weight:800;cursor:pointer;width:100%;margin-top:6px;display:block;text-align:center;text-decoration:none;font-size:14px}
 .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:800}
 .green{background:#D9F5E3}.gold{background:#FFF2B0}.red{background:#FFD9D9}.grey{background:#EEE}
 .notif{background:#FFF8E0;border:2px solid #C9A227;border-radius:12px;padding:12px;margin-top:10px}
@@ -34,10 +36,11 @@ label{font-size:13px;font-weight:700}
 .sub-row select{margin:0}
 .warn{background:#FFD9D9;border:1px solid #D33;border-radius:10px;padding:8px;font-size:13px;margin-top:8px}
 .ok{background:#D9F5E3;border:1px solid #25D366;border-radius:10px;padding:8px;font-size:13px;margin-top:8px}
+.editing{background:#0A1A3A;color:#fff;border-radius:10px;padding:10px;margin-bottom:10px}
 </style></head>
 <body>
 
-<div class="top"><h2>🎓 XINTIMANI ACADEMY</h2><p>Educator Absence • Smart Substitute Matching • <b>Privacy First</b></p><p class="small" style="color:#fff;opacity:.8">Grades: 1 to 5 • Classes: 1 Per Grade • Max 8 Total • 12A-E • 11A-G • 10A-H • 9A-F • 8A-G</p></div>
+<div class="top"><h2>🎓 XINTIMANI ACADEMY</h2><p>Educator Absence • Smart Substitute Matching • <b>Privacy First</b></p><p class="small" style="color:#fff;opacity:.8">Grades 1-5 • Classes 1 Per Grade • Max 8 • WhatsApp Notify • Edit Educator</p></div>
 
 <div class="card" id="loginCard">
 <h3>🔐 Login — Xintimani Academy</h3>
@@ -55,6 +58,7 @@ label{font-size:13px;font-weight:700}
 <button class="btn-navy" onclick="logout()">Logout</button>
 </div>
 <div id="myNotifs"></div>
+<div id="myWa"></div>
 </div>
 
 <div class="card" id="reportCard">
@@ -66,7 +70,8 @@ label{font-size:13px;font-weight:700}
 <select id="absSubject"></select>
 <textarea id="absReason" rows="2" placeholder="Reason (PRIVATE — Only Admin sees this. e.g. Sick / Family emergency) *"></textarea>
 <button class="btn" onclick="reportAbsence()">Submit Absence + Auto-Find Substitute →</button>
-<p class="small">Matching: 1) Free + Same Class + Same Subject → 2) Same Class → 3) Same Grade / Subject → 4) Any Free</p>
+<p class="small">Matching: 1) Free + Same Class + Same Subject → 2) Same Class → 3) Same Grade / Subject → 4) Any Free<br>Substitute gets WhatsApp message automatically.</p>
+<div id="lastWa"></div>
 </div>
 
 <div class="card">
@@ -78,10 +83,12 @@ label{font-size:13px;font-weight:700}
 <div class="card hidden" id="adminCard">
 <h3>🔒 Principal / Admin Only</h3>
 
-<h3 style="margin-top:14px">👩‍🏫 1. Add Educator — Grades 1-5 • Classes 1 Per Grade • Max 8 Total</h3>
-<p class="small"><b>Rule:</b> Pick 1-5 Grades. For EACH grade you pick, you MUST pick at least 1 class from that grade. Total classes max 8.</p>
+<h3 style="margin-top:14px" id="formTitle">👩‍🏫 1. Add Educator — Grades 1-5 • Classes 1 Per Grade • Max 8 Total</h3>
+<div id="editingBanner" class="editing hidden">✏️ EDITING: <b id="editingName"></b> — Change Grades / Classes / Subjects / Phone / PIN below, then tap <b>Save Changes</b>. <button class="btn-green" style="padding:5px 12px;font-size:12px" onclick="cancelEdit()">Cancel Edit</button></div>
+<p class="small"><b>Rule:</b> Pick 1-5 Grades. For EACH grade, MUST pick at least 1 class from that grade. Total classes max 8.</p>
 <input id="newName" placeholder="Full Name — e.g. Mrs Khumalo">
 <input id="newEmail" placeholder="Email / Login — e.g. khumalo@school.co.za">
+<input id="newPhone" placeholder="WhatsApp Phone — e.g. 0821234567 (for WhatsApp notify)">
 <label>🎓 Grades — MIN 1 • MAX 5 <span class="counter" id="gradeCount">0 / 5 Grades</span></label>
 <div class="chip-box" id="gradeBox">
 <label><input type="checkbox" value="Grade 8" onchange="limitCheck('gradeBox','gradeCount','Grades',5);validatePerGrade()"> Grade 8</label>
@@ -104,13 +111,10 @@ label{font-size:13px;font-weight:700}
 <div class="chip-box" id="classBox8"></div>
 
 <div id="validationBox"></div>
-
-<div id="subjectPerClassBox">
-<p class="small" style="margin-top:10px">👆 Tick a class above — Subject picker will appear here for that class.</p>
-</div>
+<div id="subjectPerClassBox"><p class="small" style="margin-top:10px">👆 Tick a class above — Subject picker will appear here for that class.</p></div>
 
 <div class="flex"><input id="newPin" placeholder="PIN — e.g. 1234" value="1234"><select id="newFree"><option value="true">✅ Free Periods Available</option><option value="false">🔴 Mostly Busy</option></select></div>
-<button class="btn" onclick="addEducator()">+ Add Educator →</button>
+<button class="btn" id="saveBtn" onclick="saveEducator()">+ Add Educator →</button>
 <div id="educatorList"></div>
 
 <h3 style="margin-top:20px">🗓️ 2. Upload School Timetable</h3>
@@ -129,7 +133,7 @@ label{font-size:13px;font-weight:700}
 <button class="btn-navy" style="width:100%;margin-top:8px" onclick="clearTimetable()">Clear Timetable</button>
 <div id="timetableView"></div>
 
-<h3 style="margin-top:20px">🔒 Private Absence Details + Reassign</h3>
+<h3 style="margin-top:20px">🔒 Private Absence Details + Reassign + WhatsApp</h3>
 <div id="adminBoard"></div>
 <h3 style="margin-top:14px">👩‍🏫 Educator Availability</h3>
 <div id="availBoard"></div>
@@ -163,10 +167,7 @@ function validatePerGrade(){
  let box=document.getElementById("validationBox");
  if(!grades.length){box.innerHTML=`<div class="warn">⚠️ Pick at least <b>1 Grade</b> (Max 5)</div>`;return {ok:false,msg:"Pick at least 1 Grade"};}
  let missing=grades.filter(g=>!classes.some(c=>gradeOfClass(c)===g));
- if(missing.length){
-   box.innerHTML=`<div class="warn">⚠️ Missing class for: <b>${missing.join(", ")}</b> — You must pick at least <b>1 class per grade</b>. Currently ${classes.length}/8 classes.</div>`;
-   return {ok:false,msg:"Missing class for "+missing.join(", ")};
- }
+ if(missing.length){box.innerHTML=`<div class="warn">⚠️ Missing class for: <b>${missing.join(", ")}</b> — Must pick at least <b>1 class per grade</b>. Currently ${classes.length}/8 classes.</div>`;return {ok:false,msg:"Missing class for "+missing.join(", ")};}
  if(classes.length>8){box.innerHTML=`<div class="warn">⚠️ Too many classes: ${classes.length}/8 — Max 8 total.</div>`;return {ok:false,msg:"Max 8 classes"};}
  if(classes.length===0){box.innerHTML=`<div class="warn">⚠️ Pick at least 1 class per grade.</div>`;return {ok:false,msg:"Pick classes"};}
  box.innerHTML=`<div class="ok">✅ Valid: Grades ${grades.length}/5 • Classes ${classes.length}/8 • Each grade has at least 1 class ✅</div>`;
@@ -174,39 +175,56 @@ function validatePerGrade(){
 }
 function onClassChange(){
  let checked=getAllClassChecks();
- if(checked.length>8){alert("⚠️ Max 8 Classes TOTAL for entire grades. You picked "+checked.length+". Untick one."); event.target.checked=false; checked=getAllClassChecks();}
+ if(checked.length>8){alert("⚠️ Max 8 Classes TOTAL. You picked "+checked.length+". Untick one."); event.target.checked=false; checked=getAllClassChecks();}
  document.getElementById("classCount").innerText=checked.length+" / 8 Classes";
  validatePerGrade();
  let box=document.getElementById("subjectPerClassBox");
  if(!checked.length){box.innerHTML=`<p class="small" style="margin-top:10px">👆 Tick a class above — Subject picker will appear here for that class.</p>`;return;}
+ // Preserve already chosen subjects
+ let prev={}; document.querySelectorAll("#subjectPerClassBox select[data-class]").forEach(s=>prev[s.dataset.class]=s.value);
  box.innerHTML=`<label style="display:block;margin-top:12px">📚 Subject PER Class — Pick one subject for EACH ticked class</label>`+checked.map(c=>{
-   return `<div class="sub-row"><b>${c.replace("Grade ","")}</b><select data-class="${c}">${SUBJECTS.map(s=>`<option>${s}</option>`).join("")}</select></div>`;
+   return `<div class="sub-row"><b>${c.replace("Grade ","")}</b><select data-class="${c}">${SUBJECTS.map(s=>`<option ${prev[c]===s?"selected":""}>${s}</option>`).join("")}</select></div>`;
  }).join("");
+ // Re-apply prev subjects where possible
+ document.querySelectorAll("#subjectPerClassBox select[data-class]").forEach(s=>{if(prev[s.dataset.class]) s.value=prev[s.dataset.class];});
 }
 function getChecked(boxId){return [...document.querySelectorAll("#"+boxId+" input:checked")].map(i=>i.value);}
 function limitCheck(boxId,countId,label,max){
  let checked=getChecked(boxId);
  if(checked.length>max){alert("⚠️ Max "+max+" "+label+" per educator."); event.target.checked=false; checked=getChecked(boxId);}
- let unit=label==="Grades"?"Grades":"Classes";
- document.getElementById(countId).innerText=checked.length+" / "+max+" "+unit;
+ document.getElementById(countId).innerText=checked.length+" / "+max+" "+label;
+}
+function formatPhone(p){
+ if(!p) return "";
+ let d=p.replace(/\D/g,"");
+ if(d.startsWith("0")) d="27"+d.slice(1);
+ if(d.startsWith("27") && d.length===11) return d;
+ return d;
+}
+function waLink(phone,msg){
+ let p=formatPhone(phone);
+ if(!p) return null;
+ return "https://wa.me/"+p+"?text="+encodeURIComponent(msg);
 }
 
 let educators=JSON.parse(localStorage.getItem("xa_educators")||"null")||[
-{id:"dube@school.co.za",name:"Mrs Dube",grades:["Grade 10","Grade 11"],classes:["Grade 10A","Grade 10H","Grade 11A"],classSubjects:[{class:"Grade 10A",subject:"Maths"},{class:"Grade 10H",subject:"Maths"},{class:"Grade 11A",subject:"Maths"}],subjects:["Maths"],free:true,pin:"1234",role:"educator"},
-{id:"nkosi@school.co.za",name:"Mr Nkosi",grades:["Grade 10","Grade 11"],classes:["Grade 10A","Grade 11G"],classSubjects:[{class:"Grade 10A",subject:"English"},{class:"Grade 11G",subject:"English"}],subjects:["English"],free:true,pin:"1234",role:"educator"},
-{id:"mokoena@school.co.za",name:"Mrs Mokoena",grades:["Grade 11","Grade 12"],classes:["Grade 11B","Grade 12E"],classSubjects:[{class:"Grade 11B",subject:"Maths"},{class:"Grade 12E",subject:"Maths"}],subjects:["Maths"],free:true,pin:"1234",role:"educator"},
-{id:"chauke@school.co.za",name:"Mr Chauke",grades:["Grade 10"],classes:["Grade 10B"],classSubjects:[{class:"Grade 10B",subject:"Science"}],subjects:["Science"],free:false,pin:"1234",role:"educator"},
-{id:"admin@school.co.za",name:"Principal",grades:[],classes:[],classSubjects:[],subjects:[],free:true,pin:"1234",role:"admin"},
+{id:"dube@school.co.za",name:"Mrs Dube",phone:"0820000001",grades:["Grade 10","Grade 11"],classes:["Grade 10A","Grade 10H","Grade 11A"],classSubjects:[{class:"Grade 10A",subject:"Maths"},{class:"Grade 10H",subject:"Maths"},{class:"Grade 11A",subject:"Maths"}],subjects:["Maths"],free:true,pin:"1234",role:"educator"},
+{id:"nkosi@school.co.za",name:"Mr Nkosi",phone:"0820000002",grades:["Grade 10","Grade 11"],classes:["Grade 10A","Grade 11G"],classSubjects:[{class:"Grade 10A",subject:"English"},{class:"Grade 11G",subject:"English"}],subjects:["English"],free:true,pin:"1234",role:"educator"},
+{id:"mokoena@school.co.za",name:"Mrs Mokoena",phone:"0820000003",grades:["Grade 11","Grade 12"],classes:["Grade 11B","Grade 12E"],classSubjects:[{class:"Grade 11B",subject:"Maths"},{class:"Grade 12E",subject:"Maths"}],subjects:["Maths"],free:true,pin:"1234",role:"educator"},
+{id:"chauke@school.co.za",name:"Mr Chauke",phone:"0820000004",grades:["Grade 10"],classes:["Grade 10B"],classSubjects:[{class:"Grade 10B",subject:"Science"}],subjects:["Science"],free:false,pin:"1234",role:"educator"},
+{id:"admin@school.co.za",name:"Principal",phone:"",grades:[],classes:[],classSubjects:[],subjects:[],free:true,pin:"1234",role:"admin"},
 ];
 educators=educators.map(e=>{
  if(!e.classSubjects || !e.classSubjects.length){e.classSubjects=(e.classes||[]).map(c=>({class:c,subject:(e.subjects||["Maths"])[0]}));}
  if(!e.subjects) e.subjects=[...new Set(e.classSubjects.map(x=>x.subject))];
+ if(e.phone===undefined) e.phone="";
  return e;
 });
 let timetable=JSON.parse(localStorage.getItem("xa_timetable")||"[]");
 let absences=JSON.parse(localStorage.getItem("xintimani_absences")||"[]");
 let notifs=JSON.parse(localStorage.getItem("xintimani_notifs")||"[]");
 let current=null;
+let editingEmail=null;
 document.getElementById("absDate").valueAsDate=new Date();
 function save(){localStorage.setItem("xa_educators",JSON.stringify(educators));localStorage.setItem("xa_timetable",JSON.stringify(timetable));localStorage.setItem("xintimani_absences",JSON.stringify(absences));localStorage.setItem("xintimani_notifs",JSON.stringify(notifs));}
 function dayName(dateStr){try{return ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][new Date(dateStr+"T00:00:00").getDay()]}catch(e){return ""}}
@@ -234,16 +252,62 @@ function login(){
  document.getElementById("loginCard").classList.add("hidden");
  document.getElementById("app").classList.remove("hidden");
  document.getElementById("welcome").innerText="Welcome, "+current.name+" — Xintimani Academy";
- document.getElementById("myInfo").innerText=current.role==="admin"?"Principal / Admin — Full Access":(current.classSubjects||[]).map(x=>x.class.replace("Grade ","")+" → "+x.subject).join(" • ");
+ document.getElementById("myInfo").innerText=current.role==="admin"?"Principal / Admin — Full Access":(current.classSubjects||[]).map(x=>x.class.replace("Grade ","")+" → "+x.subject).join(" • ")+"  •  📱 "+(current.phone||"No phone");
  document.getElementById("myGrades").innerText=current.role==="admin"?"":"🎓 Grades: "+(current.grades||[]).join(", ")+"  ("+(current.grades||[]).length+"/5)  •  🏫 Classes: "+(current.classes||[]).length+"/8";
  if(current.role==="admin") document.getElementById("adminCard").classList.remove("hidden"); else document.getElementById("adminCard").classList.add("hidden");
  render();
 }
 function logout(){current=null;document.getElementById("app").classList.add("hidden");document.getElementById("loginCard").classList.remove("hidden");}
-function addEducator(){
- if(!current||current.role!=="admin"){alert("Only Principal / Admin can add educators.");return;}
+
+// --- ADD / EDIT ---
+function clearForm(){
+ document.getElementById("newName").value="";document.getElementById("newEmail").value="";document.getElementById("newPhone").value="";
+ document.querySelectorAll("#gradeBox input:checked, [id^='classBox'] input:checked").forEach(i=>i.checked=false);
+ document.getElementById("gradeCount").innerText="0 / 5 Grades";document.getElementById("classCount").innerText="0 / 8 Classes";
+ document.getElementById("subjectPerClassBox").innerHTML=`<p class="small" style="margin-top:10px">👆 Tick a class above — Subject picker will appear here for that class.</p>`;
+ document.getElementById("validationBox").innerHTML="";
+}
+function startEdit(email){
+ let e=educators.find(x=>x.id===email);
+ if(!e) return;
+ editingEmail=email;
+ document.getElementById("formTitle").innerText="✏️ Edit Educator — "+e.name;
+ document.getElementById("editingBanner").classList.remove("hidden");
+ document.getElementById("editingName").innerText=e.name+" ("+email+")";
+ document.getElementById("saveBtn").innerText="💾 Save Changes →";
+ document.getElementById("newName").value=e.name;
+ document.getElementById("newEmail").value=e.id;
+ document.getElementById("newEmail").disabled=true;
+ document.getElementById("newPhone").value=e.phone||"";
+ document.getElementById("newPin").value=e.pin||"1234";
+ document.getElementById("newFree").value=e.free?"true":"false";
+ // grades
+ document.querySelectorAll("#gradeBox input").forEach(i=>i.checked=(e.grades||[]).includes(i.value));
+ document.getElementById("gradeCount").innerText=(e.grades||[]).length+" / 5 Grades";
+ // classes
+ document.querySelectorAll("[id^='classBox'] input").forEach(i=>i.checked=(e.classes||[]).includes(i.value));
+ document.getElementById("classCount").innerText=(e.classes||[]).length+" / 8 Classes";
+ // subjects per class
+ let box=document.getElementById("subjectPerClassBox");
+ box.innerHTML=`<label style="display:block;margin-top:12px">📚 Subject PER Class</label>`+(e.classSubjects||[]).map(cs=>{
+   return `<div class="sub-row"><b>${cs.class.replace("Grade ","")}</b><select data-class="${cs.class}">${SUBJECTS.map(s=>`<option ${s===cs.subject?"selected":""}>${s}</option>`).join("")}</select></div>`;
+ }).join("");
+ validatePerGrade();
+ document.getElementById("adminCard").scrollIntoView({behavior:"smooth"});
+}
+function cancelEdit(){
+ editingEmail=null;
+ document.getElementById("formTitle").innerText="👩‍🏫 1. Add Educator — Grades 1-5 • Classes 1 Per Grade • Max 8 Total";
+ document.getElementById("editingBanner").classList.add("hidden");
+ document.getElementById("saveBtn").innerText="+ Add Educator →";
+ document.getElementById("newEmail").disabled=false;
+ clearForm();
+}
+function saveEducator(){
+ if(!current||current.role!=="admin"){alert("Only Principal / Admin can add / edit educators.");return;}
  let name=document.getElementById("newName").value.trim();
  let email=document.getElementById("newEmail").value.trim().toLowerCase();
+ let phone=document.getElementById("newPhone").value.trim();
  let grades=getChecked("gradeBox");
  let classes=getAllClassChecks();
  let classSubjects=[...document.querySelectorAll("#subjectPerClassBox select[data-class]")].map(s=>({class:s.dataset.class,subject:s.value}));
@@ -251,26 +315,29 @@ function addEducator(){
  let pin=document.getElementById("newPin").value.trim()||"1234";
  let free=document.getElementById("newFree").value==="true";
  if(!name||!email){alert("Enter Name + Email");return;}
- // RULE 1: Grades MIN 1 MAX 5
  if(grades.length<1){alert("⚠️ Pick at least 1 Grade (Min 1, Max 5)");return;}
  if(grades.length>5){alert("⚠️ Max 5 Grades");return;}
- // RULE 2: Classes MIN 1 PER GRADE, MAX 8 TOTAL
- if(classes.length<grades.length){alert("⚠️ You picked "+grades.length+" grade(s) but only "+classes.length+" class(es).\n\nYou MUST pick at least 1 class PER GRADE.\nPick at least "+grades.length+" classes — 1 for each grade.");return;}
- if(classes.length>8){alert("⚠️ Max 8 Classes TOTAL for entire grades. You picked "+classes.length);return;}
+ if(classes.length<grades.length){alert("⚠️ You picked "+grades.length+" grade(s) but only "+classes.length+" class(es).\n\nYou MUST pick at least 1 class PER GRADE.");return;}
+ if(classes.length>8){alert("⚠️ Max 8 Classes TOTAL. You picked "+classes.length);return;}
  let v=validatePerGrade();
- if(!v.ok){alert("⚠️ "+v.msg+"\n\nRule: 1 class per grade minimum.");return;}
+ if(!v.ok){alert("⚠️ "+v.msg);return;}
  if(classSubjects.length!==classes.length){alert("Pick a Subject for each class");return;}
- if(educators.find(e=>e.id===email)){alert("Educator already exists with that email.");return;}
- educators.push({id:email,name,grades,classes,classSubjects,subjects,free,pin,role:"educator"});
- save(); refreshLogin(); render();
- document.getElementById("newName").value="";document.getElementById("newEmail").value="";
- document.querySelectorAll("#gradeBox input:checked, [id^='classBox'] input:checked").forEach(i=>i.checked=false);
- document.getElementById("gradeCount").innerText="0 / 5 Grades";document.getElementById("classCount").innerText="0 / 8 Classes";
- document.getElementById("subjectPerClassBox").innerHTML=`<p class="small" style="margin-top:10px">👆 Tick a class above — Subject picker will appear here for that class.</p>`;
- document.getElementById("validationBox").innerHTML="";
- alert("✅ "+name+" added!\nGrades ("+grades.length+"/5): "+grades.join(", ")+"\nClasses ("+classes.length+"/8): "+classSubjects.map(x=>x.class.replace("Grade ","")+" → "+x.subject).join(", ")+"\nLogin: "+email+" / PIN: "+pin);
+
+ if(editingEmail){
+   let e=educators.find(x=>x.id===editingEmail);
+   e.name=name; e.phone=phone; e.grades=grades; e.classes=classes; e.classSubjects=classSubjects; e.subjects=subjects; e.pin=pin; e.free=free;
+   save(); refreshLogin(); render();
+   alert("✅ "+name+" UPDATED!\nGrades ("+grades.length+"/5): "+grades.join(", ")+"\nClasses ("+classes.length+"/8): "+classSubjects.map(x=>x.class.replace("Grade ","")+" → "+x.subject).join(", ")+"\nPhone: "+(phone||"—")+" • PIN: "+pin);
+   cancelEdit();
+ } else {
+   if(educators.find(e=>e.id===email)){alert("Educator already exists with that email. Use Edit instead.");return;}
+   educators.push({id:email,name,phone,grades,classes,classSubjects,subjects,free,pin,role:"educator"});
+   save(); refreshLogin(); render();
+   clearForm();
+   alert("✅ "+name+" added!\nGrades ("+grades.length+"/5): "+grades.join(", ")+"\nClasses ("+classes.length+"/8): "+classSubjects.map(x=>x.class.replace("Grade ","")+" → "+x.subject).join(", ")+"\nPhone: "+(phone||"—")+" • Login: "+email+" / PIN: "+pin);
+ }
 }
-function deleteEducator(email){if(!confirm("Delete this educator?"))return; educators=educators.filter(e=>e.id!==email); save(); refreshLogin(); render();}
+function deleteEducator(email){if(!confirm("Delete this educator?"))return; educators=educators.filter(e=>e.id!==email); if(editingEmail===email) cancelEdit(); save(); refreshLogin(); render();}
 function parseCSV(text){
  let lines=text.split(/\r?\n/).filter(l=>l.trim()); let count=0;
  lines.forEach(line=>{if(line.toLowerCase().includes("day,period"))return; let parts=line.split(",").map(s=>s.trim()); if(parts.length>=5){timetable.push({day:parts[0],period:parts[1],class:parts[2],subject:parts[3],educator:parts[4].toLowerCase()});count++;}});
@@ -299,6 +366,9 @@ function findSubstitute(absentEducator, cls, subj, dateStr, period){
  if(p5) return {sub:p5,priority:"PRIORITY 5 — Free Educator (Non-Class) — Last Resort"};
  return {sub:null,priority:"NO SUBSTITUTE FOUND — All free educators busy / absent"};
 }
+function waMessageFor(rec,sub){
+ return `Hi ${sub.name} 👋\n\nXINTIMANI ACADEMY — Cover Duty 🔔\n\nYou are substituting for ${rec.educatorName}\n📚 Class: ${rec.class}\n📖 Subject: ${rec.subject}\n🕐 Period: ${rec.period}\n📅 Date: ${rec.date}\n⭐ ${rec.priority}\n\nPlease confirm you received this. Thank you! 🙏\n— Xintimani Academy`;
+}
 function reportAbsence(){
  if(!current || current.role==="admin"){alert("Admin cannot report absence. Login as an educator.");return;}
  let date=document.getElementById("absDate").value;
@@ -314,23 +384,36 @@ function reportAbsence(){
  if(match.sub){
    notifs.push({id:Date.now(),to:match.sub.id,from:current.name,msg:`🔔 COVER ALERT — XINTIMANI ACADEMY: You are substituting for ${current.name} — ${cls} • ${subj} • ${period} • ${date} — ${match.priority}`,date:Date.now(),read:false});
    notifs.push({id:Date.now()+1,to:"admin@school.co.za",from:"System",msg:`✅ ${current.name} absent (${cls} ${subj} ${period}). Auto-matched: ${match.sub.name} — ${match.priority}`,date:Date.now(),read:false});
+   // WhatsApp button for reporter / admin
+   let msg=waMessageFor(rec,match.sub);
+   let link=waLink(match.sub.phone,msg);
+   document.getElementById("lastWa").innerHTML=link?`<a class="btn-wa" href="${link}" target="_blank">💬 WhatsApp ${match.sub.name} Now — ${match.sub.phone||""} →</a><p class="small">Tap to open WhatsApp with message ready. Just tap Send.</p>`:`<div class="warn">⚠️ ${match.sub.name} has no phone number saved. Edit educator to add WhatsApp phone, then WhatsApp button will appear.</div>`;
  }
  save(); render();
- alert(match.sub?`✅ Substitute Found!\n\n${match.sub.name}\n${match.priority}\n\nNotification sent to ${match.sub.name}`:`⚠️ No substitute available. Admin notified.`);
+ alert(match.sub?`✅ Substitute Found!\n\n${match.sub.name}\n${match.priority}\n\n${match.sub.phone?"WhatsApp button ready below — Tap to notify "+match.sub.name+" on WhatsApp":"Add phone for "+match.sub.name+" to enable WhatsApp"}`:`⚠️ No substitute available. Admin notified.`);
 }
 function render(){
  let b=document.getElementById("board");
  if(absences.length===0) b.innerHTML="<p>No absences reported. All educators present ✅</p>";
- else b.innerHTML=absences.map(a=>`<div style="border:1px solid #eee;border-radius:12px;padding:10px;margin-top:8px"><b>❌ ${a.educatorName} — ABSENT</b> <span class="badge red">Absent</span><br><span class="small">${a.date} • ${a.period} • ${a.class} • ${a.subject}</span><br>👉 <b>Cover:</b> ${a.substituteName} <span class="badge green">${a.status}</span><br><span class="small">${a.priority}</span></div>`).join("");
+ else b.innerHTML=absences.map(a=>{
+   let sub=educators.find(e=>e.id===a.substituteId);
+   let msg=sub?waMessageFor(a,sub):"";
+   let link=sub?waLink(sub.phone,msg):null;
+   return `<div style="border:1px solid #eee;border-radius:12px;padding:10px;margin-top:8px"><b>❌ ${a.educatorName} — ABSENT</b> <span class="badge red">Absent</span><br><span class="small">${a.date} • ${a.period} • ${a.class} • ${a.subject}</span><br>👉 <b>Cover:</b> ${a.substituteName} <span class="badge green">${a.status}</span><br><span class="small">${a.priority}</span>${link?`<br><a class="btn-wa" href="${link}" target="_blank">💬 WhatsApp ${a.substituteName}</a>`:""}</div>`;
+ }).join("");
  if(current && current.role==="admin"){
-   document.getElementById("educatorList").innerHTML=`<table><tr><th>Educator</th><th>Grades (1-5)</th><th>Classes + Subject Per Class (Max 8)</th><th>PIN</th><th></th></tr>${educators.map(e=>`<tr><td>${e.name}<br><span class="small">${e.id}</span></td><td>${(e.grades||[]).join(", ")}<br><span class="badge gold">${(e.grades||[]).length}/5</span></td><td>${(e.classSubjects||[]).map(x=>x.class.replace("Grade ","")+" → <b>"+x.subject+"</b>").join("<br>")}<br><span class="badge gold">${(e.classes||[]).length}/8 Classes</span></td><td>${e.pin}</td><td>${e.role!=="admin"?`<button class="btn-red" onclick="deleteEducator('${e.id}')">Delete</button>`:""}</td></tr>`).join("")}</table>`;
+   document.getElementById("educatorList").innerHTML=`<table><tr><th>Educator</th><th>Grades (1-5)</th><th>Classes + Subject (Max 8)</th><th>Phone / PIN</th><th>Actions</th></tr>${educators.map(e=>`<tr><td>${e.name}<br><span class="small">${e.id}</span></td><td>${(e.grades||[]).join(", ")}<br><span class="badge gold">${(e.grades||[]).length}/5</span></td><td>${(e.classSubjects||[]).map(x=>x.class.replace("Grade ","")+" → <b>"+x.subject+"</b>").join("<br>")}<br><span class="badge gold">${(e.classes||[]).length}/8 Classes</span></td><td>📱 ${e.phone||"—"}<br>PIN: ${e.pin}</td><td><button class="btn-edit" onclick="startEdit('${e.id}')">✏️ Edit</button><br><br>${e.role!=="admin"?`<button class="btn-red" onclick="deleteEducator('${e.id}')">Delete</button>`:""}</td></tr>`).join("")}</table>`;
    document.getElementById("timetableView").innerHTML=timetable.length?`<table><tr><th>Day</th><th>Period</th><th>Class</th><th>Subject</th><th>Educator</th><th></th></tr>${timetable.map((t,i)=>{let edu=educators.find(e=>e.id===t.educator);return `<tr><td>${t.day}</td><td>${t.period}</td><td>${t.class}</td><td>${t.subject}</td><td>${edu?edu.name:t.educator}</td><td><button class="btn-red" onclick="deleteTimetable(${i})">X</button></td></tr>`}).join("")}</table>`:"<p class='small'>No timetable uploaded yet.</p>";
-   document.getElementById("adminBoard").innerHTML=absences.length?absences.map(a=>`<div style="border:1px solid #eee;padding:10px;border-radius:10px;margin-top:8px"><b>${a.educatorName}</b> — ${a.class} ${a.subject} ${a.period}<br><b style="color:#B00">Private Reason:</b> ${a.reason}<br><b>Substitute:</b> ${a.substituteName} — ${a.priority} <button class="btn-navy" style="padding:4px 10px;font-size:12px" onclick="reassign(${a.id})">Reassign</button></div>`).join(""):"<p>No absences.</p>";
-   document.getElementById("availBoard").innerHTML=`<table><tr><th>Educator</th><th>Classes + Subject</th><th>Status</th></tr>${educators.filter(e=>e.role!=="admin").map(e=>{
+   document.getElementById("adminBoard").innerHTML=absences.length?absences.map(a=>{
+     let sub=educators.find(e=>e.id===a.substituteId);
+     let link=sub?waLink(sub.phone,waMessageFor(a,sub)):null;
+     return `<div style="border:1px solid #eee;padding:10px;border-radius:10px;margin-top:8px"><b>${a.educatorName}</b> — ${a.class} ${a.subject} ${a.period}<br><b style="color:#B00">Private Reason:</b> ${a.reason}<br><b>Substitute:</b> ${a.substituteName} — ${a.priority} <button class="btn-navy" style="padding:4px 10px;font-size:12px" onclick="reassign(${a.id})">Reassign</button>${link?`<a class="btn-wa" href="${link}" target="_blank" style="display:inline-block;width:auto;margin-left:6px;padding:6px 12px;font-size:12px">💬 WhatsApp ${a.substituteName}</a>`:`<span class="small"> • No phone for ${a.substituteName} — Edit to add</span>`}</div>`;
+   }).join(""):"<p>No absences.</p>";
+   document.getElementById("availBoard").innerHTML=`<table><tr><th>Educator</th><th>Classes + Subject</th><th>Phone</th><th>Status</th></tr>${educators.filter(e=>e.role!=="admin").map(e=>{
      let isAbsent=absences.find(a=>a.educatorId===e.id);
      let isCovering=absences.find(a=>a.substituteId===e.id);
      let status=isAbsent?"❌ Absent":isCovering?`🔔 Covering for ${isCovering.educatorName}`:e.free?"✅ Free":"🔴 Busy";
-     return `<tr><td>${e.name}</td><td><span class="small">${(e.classSubjects||[]).map(x=>x.class.replace("Grade ","")+" → "+x.subject).join("<br>")}</span></td><td>${status}</td></tr>`}).join("")}</table>`;
+     return `<tr><td>${e.name}</td><td><span class="small">${(e.classSubjects||[]).map(x=>x.class.replace("Grade ","")+" → "+x.subject).join("<br>")}</span></td><td>${e.phone||"—"}</td><td>${status}</td></tr>`}).join("")}</table>`;
  }
  if(!current) return;
  let myN=notifs.filter(n=>n.to===current.id);
@@ -343,12 +426,14 @@ function reassign(id){
  let rec=absences.find(a=>a.id===id);
  let avail=educators.filter(e=>e.role!=="admin" && e.id!==rec.educatorId && !absences.map(x=>x.substituteId).includes(e.id));
  if(!avail.length){alert("No educator free to reassign.");return;}
- let choice=prompt("Reassign to:\n"+avail.map((e,i)=>`${i}: ${e.name} — ${(e.classSubjects||[]).map(x=>x.class.replace("Grade ","")+":"+x.subject).join(", ")}`).join("\n"));
+ let choice=prompt("Reassign to:\n"+avail.map((e,i)=>`${i}: ${e.name} — ${(e.classSubjects||[]).map(x=>x.class.replace("Grade ","")+":"+x.subject).join(", ")} — ${e.phone||"No phone"}`).join("\n"));
  if(choice===null) return;
  let sel=avail[parseInt(choice)]; if(!sel) return;
  rec.substituteId=sel.id; rec.substituteName=sel.name; rec.priority="MANUALLY REASSIGNED BY ADMIN";
  notifs.push({id:Date.now(),to:sel.id,from:"Admin",msg:`🔔 ADMIN REASSIGNMENT — XINTIMANI ACADEMY: You are now covering for ${rec.educatorName} — ${rec.class} ${rec.subject} ${rec.period} ${rec.date}`,date:Date.now(),read:false});
- save(); render(); alert("Reassigned to "+sel.name);
+ save(); render();
+ let link=waLink(sel.phone,waMessageFor(rec,sel));
+ alert("Reassigned to "+sel.name+(link?"\n\nWhatsApp button ready in Admin Board — Tap to notify.":"\n\nNo phone for "+sel.name+" — Edit to add phone for WhatsApp."));
 }
 refreshLogin(); render();
 </script>
